@@ -23,6 +23,9 @@ def create_user():
         if not payload:
             raise FlaskException("Invalid request", status_code=400)
         
+        payload.pop('id', None)
+        payload.pop('_id', None)
+        
         user = User(**payload)
         createduser = UserDataAccessObject.create_user(user)
         created_user = createduser.dict()
@@ -68,8 +71,8 @@ def get_user_by_id(id: str):
     """
     try:
         user = UserDataAccessObject.get_user_by_id(id)
-        if not user:
-            raise FlaskException("User not found", status_code=404)
+        # if not user:
+        #     raise FlaskException("User not found", status_code=404)
         got_user = user.dict()
         got_user.pop('password')
         return APIResponse(data=got_user, message="User fetched successfully", status_code=200)
@@ -91,6 +94,9 @@ def update_user(id: str):
         payload = request.get_json()
         if not payload:
             raise FlaskException("Invalid request", status_code=400)
+        
+        payload.pop('id', None)
+        payload.pop('_id', None)
         
         user = User(**payload)
         updated_user = UserDataAccessObject.update_user_by_id(id, user)
@@ -115,7 +121,7 @@ def delete_user(id: str):
         FlaskException: If any error occurs while deleting user
     """
     try:
-        user = UserDataAccessObject.delete_user_by_id(id)
-        return APIResponse(data={}, message="User deleted successfully", status_code=204)
+        UserDataAccessObject.delete_user_by_id(id)
+        return APIResponse(data=None, message=None, status_code=204)
     except FlaskException as e:
         raise e
