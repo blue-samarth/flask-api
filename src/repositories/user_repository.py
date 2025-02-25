@@ -62,7 +62,26 @@ class UserDataAccessObject:
             return users
         except Exception as e:
             raise FlaskException(str(e))
-        
+
+    @staticmethod
+    def get_user_by_id(id: str) -> User:
+        """
+        Gets a user by id
+        Args:
+            id (str): Id of the user
+        Returns:
+            User: Returns the user
+        Raises:
+            FlaskException: If any error occurs while fetching user
+        """
+        try:
+            user = mongo.db.users.find_one({"_id": id})
+            if user:
+                return User(**user)
+            raise FlaskException("User not found", status_code=404)
+        except Exception as e:
+            raise FlaskException(str(e))
+
     @staticmethod
     def update_user(user: User) -> User:
         """
@@ -86,16 +105,39 @@ class UserDataAccessObject:
             raise FlaskException(str(e))
         
     @staticmethod
-    def delete_user(email: str) -> None:
+    def update_user_by_id(id: str, user: User) -> User:
         """
-        Deletes a user
+        Updates a user by id
         Args:
-            email (str): Email of the user
+            id (str): User id
+            user (User): User object
+        Returns:
+            User: Returns the updated user
+        Raises:
+            FlaskException: If any error occurs while updating user
+        """
+        try:
+            if mongo.db.users.find_one({"_id": id}):
+                res = mongo.db.users.update_one({"_id": id}, {"$set": user.dict(by_alias=True)})
+                if not res.acknowledged:
+                    raise FlaskException("User not updated", status_code=500)
+                updated_user = mongo.db.users.find_one({"_id": id})
+                return User(**updated_user)
+            raise FlaskException("User not found", status_code=404)
+        except Exception as e:
+            raise FlaskException(str(e))
+    
+    @staticmethod
+    def delete_user(id: str) -> None:
+        """
+        This will delete a user by id
+        Args:
+            id (str): User id
         Raises:
             FlaskException: If any error occurs while deleting user
         """
         try:
-            res = mongo.db.users.delete_one({"email": email})
+            res = mongo.db.users.delete_one({"_id": id})
             if not res.acknowledged:
                 raise FlaskException("User not deleted", status_code=500)
         except Exception as e:
