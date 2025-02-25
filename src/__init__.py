@@ -20,6 +20,7 @@ app.config.update({
 })
 
 mongo = PyMongo(app)
+
 jwt = JWTManager(app)
 
 def startup_event() -> None:
@@ -31,9 +32,9 @@ def startup_event() -> None:
         print("Exiting...")
         exit(1)
 
-with app.app_context:
+with app.app_context():
     startup_event()
 
-@app.teardown_appcontext
-def shutdown_session(exception=None):
-    mongo.cx.close()
+# @app.teardown_appcontext
+# def shutdown_session(exception=None):
+#     mongo.db.client.close()

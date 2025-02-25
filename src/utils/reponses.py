@@ -11,15 +11,15 @@ class APIResponse:
         self.status_code: int = status_code
         self.success: bool = True if 200 <= status_code < 300 else False
 
-    def to_response(self) -> tuple:
+    def to_dict(self) -> tuple:
         """
         Will return a response object
         """
 
-        return jsonify(
-            {
+        return{
                 "data": self.data,
                 "message": self.message,
-                "success": self.success
-            }), self.status_code
+                "success": self.success,
+                "status_code": self.status_code
+            }
         

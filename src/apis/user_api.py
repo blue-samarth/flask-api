@@ -1,4 +1,4 @@
-from flask import Blueprint, request
+from flask import Blueprint, request, jsonify, make_response
 
 from src.repositories.user_repository import UserDataAccessObject
 from src.models.users import User
@@ -11,6 +11,7 @@ user_api = Blueprint('user_api', __name__)
 def create_user():
     """
     Creates a user
+    curl -X POST http://127.0.0.1:8000/user -H "Content-Type: application/json" -d '{"name": "John Doe", "email": "john_doe@gmail.com, "password": "Password@123"}'
     Args:
         user (User): User object
     Returns:
@@ -31,7 +32,11 @@ def create_user():
         created_user = createduser.dict()
         
         created_user.pop('password')
-        return APIResponse(data=created_user, message="User created successfully", status_code=201)
+        return make_response(jsonify(APIResponse(
+            data=created_user,
+            message="User created successfully",
+            status_code=201
+        )))
     except ValueError as e:
         raise FlaskException(data=str(e), status_code=400)
     except FlaskException as e:
@@ -53,7 +58,12 @@ def get_all_user():
             user = user.dict()
             user.pop('password')
             res.append(user)
-        return APIResponse(data=res, message="Users fetched successfully", status_code=200)
+        return make_response(jsonify(APIResponse(
+            data=res,
+            message="Users fetched successfully",
+            status_code=200
+            ).to_dict()
+        ))
     except FlaskException as e:
         raise e
     
@@ -75,7 +85,12 @@ def get_user_by_id(id: str):
         #     raise FlaskException("User not found", status_code=404)
         got_user = user.dict()
         got_user.pop('password')
-        return APIResponse(data=got_user, message="User fetched successfully", status_code=200)
+        return make_response(jsonify(APIResponse(
+            data=got_user,
+            message="User fetched successfully",
+            status_code=200
+            ).to_dict()
+        ))
     except FlaskException as e:
         raise e
     
@@ -103,7 +118,12 @@ def update_user(id: str):
         updated_user = updated_user.dict()
         updated_user.pop('password')
 
-        return APIResponse(data=updated_user, message="User updated successfully", status_code=200)
+        return make_response(jsonify(APIResponse(
+            data=updated_user,
+            message="User updated successfully",
+            status_code=200
+            ).to_dict()
+        ))
     except ValueError as e:
         raise FlaskException(data=str(e), status_code=400)
     except FlaskException as e:
@@ -122,6 +142,11 @@ def delete_user(id: str):
     """
     try:
         UserDataAccessObject.delete_user_by_id(id)
-        return APIResponse(data=None, message=None, status_code=204)
+        return make_response(jsonify(APIResponse(
+            data=None,
+            message=None,
+            status_code=204
+            ).to_dict()
+        ))
     except FlaskException as e:
         raise e

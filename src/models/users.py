@@ -38,11 +38,12 @@ class User(BaseModel):
             return password
         return PasswordHandle().hashpassword(password)
 
-    class Config:
-        allow_population_by_field_name = True
-        json_encoders = {
+    model_config={
+        "populate_by_name": True,
+        "json_encoders":  {
             ObjectId: lambda x: str(x)
         }
+    }
 
     def dict(self, *args, **kwargs):
         """Overrides the dict method to remove the password field"""

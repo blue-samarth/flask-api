@@ -9,3 +9,5 @@ wheels/
 # Virtual environments
 .venv
 tree.txt
+error.txt
+install_mongo.sh

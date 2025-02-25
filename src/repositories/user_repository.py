@@ -39,10 +39,10 @@ class UserDataAccessObject:
         """
         try:
             
-            res = mongo.db.users.insert_one(user.dict(by_alias=True))
+            res = mongo.db.users.insert_one(user.dict())
             if not res.acknowledged:
                 raise FlaskException("User not created", status_code=500)
-            created_user = mongo.db.users.find_one({"id": res.inserted_id})
+            created_user = mongo.db.users.find_one({"email": user.email})
             return User(**created_user)
         except Exception as e:
             raise FlaskException(str(e))
@@ -120,20 +120,33 @@ class UserDataAccessObject:
             FlaskException: If any error occurs while updating user
         """
         try:
+            obj_id = ObjectId(id)  # Ensure valid ObjectId format
+            
+            # Check if the email already exists
             email_check = mongo.db.users.find_one({"email": user.email})
             if email_check:
                 raise FlaskException("Email already exists", status_code=400)
-            if mongo.db.users.find_one({"_id": ObjectId(id)}):
-                res = mongo.db.users.update_one({"_id": id}, {"$set": user.dict(by_alias=True)})
-                if res.matched_count == 0:
-                    raise FlaskException("User not found", status_code=404)
-                # if not res.acknowledged:
-                #     raise FlaskException("User not updated", status_code=500)
-                updated_user = mongo.db.users.find_one({"_id": id})
-                return User(**updated_user)
-            raise FlaskException("User not found", status_code=404)
+
+            # Check if user exists before updating
+            if not mongo.db.users.find_one({"_id": obj_id}):
+                raise FlaskException("User not found", status_code=404)
+
+            # Perform the update
+            res = mongo.db.users.update_one({"_id": obj_id}, {"$set": user.dict(by_alias=True)})
+
+            if res.modified_count == 0:
+                raise FlaskException("No changes made", status_code=400)
+
+            # Retrieve the updated user
+            updated_user = mongo.db.users.find_one({"_id": obj_id})
+            return User(**updated_user)
+
+        except FlaskException as e:
+            raise FlaskException("Invalid ObjectId format", status_code=400)
+
         except Exception as e:
             raise FlaskException(str(e))
+
     
     @staticmethod
     def delete_user_by_id(id: str) -> None:
