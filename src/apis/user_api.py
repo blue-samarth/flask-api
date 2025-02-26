@@ -1,11 +1,14 @@
-from flask import Blueprint, request, jsonify, make_response
+from logging import Logger
+
+from flask import Blueprint, request, jsonify
 
 from src.repositories.user_repository import UserDataAccessObject
 from src.models.users import User
 from src.utils.exceptions import FlaskException
-from src.utils.reponses import APIResponse
 
 user_api = Blueprint('user_api', __name__)
+logger: Logger = Logger(__name__)
+
 
 @user_api.route('/user', methods=['POST'])
 def create_user():
@@ -29,18 +32,26 @@ def create_user():
         
         user = User(**payload)
         createduser = UserDataAccessObject.create_user(user)
+        print(createduser)
         created_user = createduser.dict()
+        print(type(created_user))
         
         created_user.pop('password')
-        return make_response(jsonify(APIResponse(
+        return jsonify(
             data=created_user,
-            message="User created successfully",
-            status_code=201
-        )))
+            message= "User created successfully",
+            status_code= 201
+        )
     except ValueError as e:
         raise FlaskException(data=str(e), status_code=400)
+    # We need to return a status messgae instead of the actual error message
     except FlaskException as e:
-        raise e
+        logger.error(str(e))
+        return jsonify(
+            data=None,
+            message= "User not created",
+            status_code= 500
+        )
     
 @user_api.route('/user', methods=['GET'])
 def get_all_user():
@@ -53,17 +64,17 @@ def get_all_user():
     """
     try:
         users = UserDataAccessObject.get_all_users()
+        print(users)
         res: list[dict] = []
         for user in users:
             user = user.dict()
             user.pop('password')
             res.append(user)
-        return make_response(jsonify(APIResponse(
+        return jsonify(
             data=res,
-            message="Users fetched successfully",
-            status_code=200
-            ).to_dict()
-        ))
+            message= "Users fetched successfully",
+            status_code= 200
+        )
     except FlaskException as e:
         raise e
     
@@ -81,18 +92,23 @@ def get_user_by_id(id: str):
     """
     try:
         user = UserDataAccessObject.get_user_by_id(id)
+        print(user)
         # if not user:
         #     raise FlaskException("User not found", status_code=404)
         got_user = user.dict()
         got_user.pop('password')
-        return make_response(jsonify(APIResponse(
+        return jsonify(
             data=got_user,
-            message="User fetched successfully",
-            status_code=200
-            ).to_dict()
-        ))
+            message= "User fetched successfully",
+            status_code= 200
+        )
     except FlaskException as e:
-        raise e
+        return jsonify(
+            data=None,
+            message= "User not found",
+            status_code= 404
+        )
+
     
 @user_api.route('/user/<id>', methods=['PUT'])
 def update_user(id: str):
@@ -118,16 +134,19 @@ def update_user(id: str):
         updated_user = updated_user.dict()
         updated_user.pop('password')
 
-        return make_response(jsonify(APIResponse(
+        return jsonify(
             data=updated_user,
-            message="User updated successfully",
-            status_code=200
-            ).to_dict()
-        ))
+            message= "User updated successfully",
+            status_code= 200
+        )
     except ValueError as e:
         raise FlaskException(data=str(e), status_code=400)
     except FlaskException as e:
-        raise e
+        return jsonify(
+            data=None,
+            message= "User not updated",
+            status_code= 500
+        )
     
 @user_api.route('/user/<id>', methods=['DELETE'])
 def delete_user(id: str):
@@ -142,11 +161,10 @@ def delete_user(id: str):
     """
     try:
         UserDataAccessObject.delete_user_by_id(id)
-        return make_response(jsonify(APIResponse(
+        return jsonify(
             data=None,
-            message=None,
-            status_code=204
-            ).to_dict()
-        ))
+            message= "User deleted successfully",
+            status_code= 200
+        )
     except FlaskException as e:
         raise e

@@ -78,7 +78,9 @@ class UserDataAccessObject:
             FlaskException: If any error occurs while fetching user
         """
         try:
-            user = mongo.db.users.find_one({"_id": ObjectId(id)})
+            print(id)
+            user = mongo.db.users.find_one({"_id": id})
+            print(user)
             if user:
                 return User(**user)
             raise FlaskException("User not found", status_code=404)
@@ -120,7 +122,6 @@ class UserDataAccessObject:
             FlaskException: If any error occurs while updating user
         """
         try:
-            obj_id = ObjectId(id)  # Ensure valid ObjectId format
             
             # Check if the email already exists
             email_check = mongo.db.users.find_one({"email": user.email})
@@ -128,17 +129,17 @@ class UserDataAccessObject:
                 raise FlaskException("Email already exists", status_code=400)
 
             # Check if user exists before updating
-            if not mongo.db.users.find_one({"_id": obj_id}):
+            if not mongo.db.users.find_one({"_id": id}):
                 raise FlaskException("User not found", status_code=404)
 
             # Perform the update
-            res = mongo.db.users.update_one({"_id": obj_id}, {"$set": user.dict(by_alias=True)})
+            res = mongo.db.users.update_one({"_id": id}, {"$set": user.dict(by_alias=True, exclude={"id"})})
 
             if res.modified_count == 0:
                 raise FlaskException("No changes made", status_code=400)
 
             # Retrieve the updated user
-            updated_user = mongo.db.users.find_one({"_id": obj_id})
+            updated_user = mongo.db.users.find_one({"_id": id})
             return User(**updated_user)
 
         except FlaskException as e:
