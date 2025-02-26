@@ -1,0 +1,26 @@
+services:
+  user-api:
+    image: user-api
+    container_name: user-api
+    pull_policy: never
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runtime
+    ports:
+      - "8000:8000"
+    depends_on:
+      - mongodb
+
+  mongodb:
+    image: mongo
+    container_name: user-api-mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb-data:/data/db
+
+volumes:
+  mongodb-data:
+
+
