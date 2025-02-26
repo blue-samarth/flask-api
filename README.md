@@ -1,4 +1,3 @@
-```markdown
 # User Management API
 
 A comprehensive RESTful API for robust user management built with Flask and MongoDB, emphasizing security, scalability, and developer experience.
@@ -278,4 +277,3 @@ Contributions are welcome! Please follow these steps:
 ## 📄 License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
-```
